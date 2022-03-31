@@ -43,6 +43,7 @@ namespace Rimbalzino
             this.txt_speed = new System.Windows.Forms.TextBox();
             this.btn_plus = new System.Windows.Forms.Button();
             this.label3 = new System.Windows.Forms.Label();
+            this.txt_num = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // label1
@@ -146,6 +147,7 @@ namespace Rimbalzino
             this.txt_speed.Font = new System.Drawing.Font("Microsoft Sans Serif", 25F);
             this.txt_speed.Location = new System.Drawing.Point(930, 50);
             this.txt_speed.Name = "txt_speed";
+            this.txt_speed.ReadOnly = true;
             this.txt_speed.Size = new System.Drawing.Size(30, 45);
             this.txt_speed.TabIndex = 10;
             this.txt_speed.Text = "1";
@@ -168,15 +170,27 @@ namespace Rimbalzino
             this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 15F);
             this.label3.Location = new System.Drawing.Point(1007, 60);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(88, 25);
+            this.label3.Size = new System.Drawing.Size(93, 25);
             this.label3.TabIndex = 12;
-            this.label3.Text = "Velocità:";
+            this.label3.Text = "Quadrati:";
+            // 
+            // txt_num
+            // 
+            this.txt_num.Font = new System.Drawing.Font("Microsoft Sans Serif", 25F);
+            this.txt_num.Location = new System.Drawing.Point(1106, 51);
+            this.txt_num.Name = "txt_num";
+            this.txt_num.ReadOnly = true;
+            this.txt_num.Size = new System.Drawing.Size(38, 45);
+            this.txt_num.TabIndex = 13;
+            this.txt_num.Text = "0";
+            this.txt_num.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1156, 508);
+            this.Controls.Add(this.txt_num);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.btn_plus);
             this.Controls.Add(this.txt_speed);
@@ -212,6 +226,7 @@ namespace Rimbalzino
         private System.Windows.Forms.TextBox txt_speed;
         private System.Windows.Forms.Button btn_plus;
         private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.TextBox txt_num;
     }
 }
 

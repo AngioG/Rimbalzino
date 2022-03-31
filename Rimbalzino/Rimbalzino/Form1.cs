@@ -13,7 +13,6 @@ namespace Rimbalzino
 
     public partial class Form1 : Form
     {
-       
         public Form1()
         {
             InitializeComponent();
@@ -36,7 +35,11 @@ namespace Rimbalzino
 
             var a = new Sprite("quadrato", panel1);
             panel1.Controls.Add(a);
+            int n = int.Parse(txt_num.Text);
+            txt_num.Text = (n + 1).ToString();
             logs.Items.Add(DateTime.Now.ToString("HH:mm:ss") + $" - Ho generato un nuovo quadrato in posizione ({a.Location.X};{a.Location.Y})");
+            a.Click += new EventHandler((o, evento) => this.Clicked(a, e));
+            a.OnBounce += new EventHandler((o, evento) => this.OutOfBounces(a, e));
 
             foreach (var o in panel1.Controls)
                 Task.Run(() => (o as Sprite).Run());
@@ -45,17 +48,15 @@ namespace Rimbalzino
             btn_clear.Enabled = true;
             btn_stop.Enabled = true;
             btn_timer.Enabled = true;
-            
 
-            
+
+
         }
 
         private void StopAll(object sender, EventArgs e)
         {
-            if (!timer1.Enabled)
-                return;
-
             timer1.Stop();
+            logs.Items.Add(DateTime.Now.ToString("HH:mm:ss") + " - Ho fermato la generazione dei quadrati");
             foreach (var o in panel1.Controls)
                 (o as Sprite).Stop = true;
 
@@ -63,7 +64,7 @@ namespace Rimbalzino
 
             btn_start.Enabled = true;
             btn_stop.Enabled = false;
-            btn_timer.Enabled = btn_stop.Enabled;           
+            btn_timer.Enabled = btn_stop.Enabled;
         }
 
         private void Clear(object sender, EventArgs e)
@@ -72,9 +73,16 @@ namespace Rimbalzino
             timer1.Stop();
             logs.Items.Add(DateTime.Now.ToString("HH:mm:ss") + " - Ho fermato la generazione degli sprites");
 
+            bool primo = true;
             foreach (var o in panel1.Controls)
+            {
+                if (primo && !(o as Sprite).Stop)
+                {
+                    logs.Items.Add(DateTime.Now.ToString("HH:mm:ss") + " - Ho fermato tutti gli sprites");
+                    primo = false;
+                }
                 (o as Sprite).Stop = true;
-            logs.Items.Add(DateTime.Now.ToString("HH:mm:ss") + " - Ho fermato tutti gli sprites");
+            }
 
             do
             {
@@ -91,9 +99,12 @@ namespace Rimbalzino
                     ele[j].Dispose();
             } while (panel1.Controls.Count != 0);
             logs.Items.Add(DateTime.Now.ToString("HH:mm:ss") + " - Ho eliminato tutti gli sprites");
+            txt_num.Text = "0";
             if (running)
+            {
                 timer1.Start();
-            logs.Items.Add(DateTime.Now.ToString("HH:mm:ss") + " - Ho fatto ripartire la generazione degli sprites");
+                logs.Items.Add(DateTime.Now.ToString("HH:mm:ss") + " - Ho fatto ripartire la generazione degli sprites");
+            }
 
             btn_start.Enabled = !running;
             btn_clear.Enabled = false;
@@ -117,6 +128,10 @@ namespace Rimbalzino
             var a = new Sprite("quadrato", panel1);
             panel1.Controls.Add(a);
             Task.Run(() => a.Run());
+            a.Click += new EventHandler((o, evento) => this.Clicked(a, e));
+            a.OnBounce += new EventHandler((o, evento) => this.OutOfBounces(a, e));
+            int n = int.Parse(txt_num.Text);
+            txt_num.Text = (n + 1).ToString();
             logs.Items.Add(DateTime.Now.ToString("HH:mm:ss") + $" - Ho generato un nuovo quadrato in posizione ({a.Location.X};{a.Location.Y})");
 
             btn_clear.Enabled = true;
@@ -159,7 +174,22 @@ namespace Rimbalzino
 
         private void Clicked(object sender, EventArgs e)
         {
+            (sender as Sprite).Stop = true;
+            System.Threading.Thread nuovo = new System.Threading.Thread(() =>
+            {
+                (sender as Sprite).Dispose();
+                int n = int.Parse(txt_num.Text);
+                txt_num.Text = (n - 1).ToString();
+                logs.Items.Add(DateTime.Now.ToString("HH:mm:ss") + $" - Hai eliminato un quadrato");
+            });
+            nuovo.Start();
+        }
 
+        private void OutOfBounces(object sender, EventArgs e)
+        {
+            int n = int.Parse(txt_num.Text);
+            txt_num.Text = (n - 1).ToString();
+            logs.Items.Add(DateTime.Now.ToString("HH:mm:ss") + $" - Un quadrato è uscito dallo schermo");
         }
 
         public class Sprite : PictureBox
@@ -177,6 +207,7 @@ namespace Rimbalzino
             private bool est = false;
             private Control parent;
             private bool toDispose = false;
+            public event EventHandler OnBounce;
             public bool Stop = false;
             #endregion
 
@@ -210,7 +241,7 @@ namespace Rimbalzino
                 base.Location = new Point(random.Next(0, parent.Width - this.Width), random.Next(0, parent.Height - this.Height));
                 base.Size = new Size(size, size);
                 this.bouncesLefts = random.Next(2, 8);
-                nord = random.Next(0, 2) == 0 ? false: true;
+                nord = random.Next(0, 2) == 0 ? false : true;
                 est = random.Next(0, 2) == 0 ? false : true;
 
                 //Roba grafica
@@ -218,8 +249,7 @@ namespace Rimbalzino
                 this.SetStyle(ControlStyles.AllPaintingInWmPaint, true);
                 this.SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
                 this.UpdateStyles();
-
-                this.OnClick += 
+                //this.Click += click;
             }
             #endregion
 
@@ -227,7 +257,7 @@ namespace Rimbalzino
             public void Run()
             {
                 parent = this.Parent;
-                while (!Stop && ! toDispose)
+                while (!Stop && !toDispose)
                 {
                     this.Step();
                     Application.DoEvents();
@@ -244,7 +274,7 @@ namespace Rimbalzino
                 int x = this.est ? -Speed : Speed;
                 Location = new Point(Location.X + x, Location.Y + y);
 
-                if(bouncesLefts != 0)
+                if (bouncesLefts != 0)
                 {
                     if (Location.Y >= parent.Size.Height - Size.Height || Location.Y <= 0)
                     {
@@ -262,14 +292,23 @@ namespace Rimbalzino
                 }
 
                 if (Location.Y <= -(Size.Width) || Location.Y >= parent.Size.Height + Size.Height || Location.X <= -(Size.Width) || Location.X >= parent.Size.Width + Size.Width)
+                {
+                    onBounce(EventArgs.Empty);
                     toDispose = true;
+                }
+
 
             }
 
-
+            private void onBounce(EventArgs e)
+            {
+                EventHandler handler = OnBounce;
+                if (handler != null)
+                {
+                    handler(this, e);
+                }
+            }
             #endregion
-
-
         }
     }
 }
